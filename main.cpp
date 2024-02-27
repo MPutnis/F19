@@ -35,7 +35,8 @@ public:
     }
     char getName() 
     {
-        return name;
+        char c = name;
+        return c;
     }
     // returns current count of a char
     int getCount()
@@ -75,38 +76,29 @@ int countTotal (symbols *s)
     return sum;
 }
 
-// function to extract and count different chars in a string
-void extractChars( string s, symbols *c)
+// function to insert char or increase char count in a symbols object array
+void insertChars( char s, symbols *c) // c- array of symbols objects
 {
-    char ss;
-    for( int i = 0; i < s.length(); i++)
+    // check if symbols array c contains s
+    bool found = false;
+    for (int j = 0; j <= 62; j++)
     {
-        ss = s[i];
-        if( isalnum(ss))
-        //(ss >= 'a' && ss <= 'z') || (ss >= 'A' && ss <= 'Z') || (ss >= '0' && ss <= '9')
+        // if c already has ss, increase count by one
+        if( c[j].getName() == s)
         {
-            // check if symbols array ch contains ss
-            bool found = false;
-            for (int j = 0; j <= 62; j++)
-            {
-                // if ch already has ss, increase count by one
-                if( c[j].getName() == ss)
-                {
-                    c[j].countInc();
-                    found = true;
-                    break;
-                }               
-            }
-            // if ch doesn't contain ss, create new object
-            if (!found) {
-                // find first empty object ch
-                int f = 0;
-                while (c[f].getName() != ' ')
-                    f++;
-                c[f].setName(ss);
-                c[f].countInc();
-            }
-        }
+            c[j].countInc();
+            found = true;
+            break;
+        }               
+    }
+    // if c doesn't contain ss, create new object
+    if (!found) {
+        // find first empty object in c
+        int f = 0;
+        while (c[f].getName() != ' ')
+            f++;
+        c[f].setName(s);
+        c[f].countInc();
     }
 }
 
@@ -138,12 +130,22 @@ void sortArr( symbols *c)
         }
 }
 
-// function to write an array to a file
-void writeArr(symbols *c, fstream &f)
+// function to write 3 arrays to a file
+void writeArr(symbols *u, symbols *l, symbols *n, fstream &f)
 {
-    for (int i = 0; c[i].getName() != ' '; i++)
+    int uLen = countSymbols(u), lLen = countSymbols(l), nLen = countSymbols(n);
+    int maxLength = max(lLen, nLen);
+    maxLength = max(maxLength, uLen);
+    for (int i = 0; i < maxLength; i++)
     {
-        f << i+1 << ")\t" << c[i].print() << endl;
+        string uc, lc, nu; // will hold output values
+        // has i reached the end of uppercase array? If yes, then tab, else print array[i]
+        (i >= uLen) ? uc = "\t\t" : uc = u[i].print();
+        // has i reached the end of lowercase array? If yes, then tab, else print array[i]
+        (i >= lLen) ? lc = "\t\t" : lc = l[i].print();
+        // has i reached the end of numbers array? If yes, then tab, else print array[i]
+        (i >= nLen) ? nu = "" : nu = n[i].print();
+        f << i+1 << ".\t| " << uc << "\t| " << lc << "\t| " << nu << endl;
     }
 }
 
@@ -152,21 +154,50 @@ int main() {
     f.open("text.txt", ios::in);
     f1.open("table.txt", ios::out);
     string s;
-    symbols ch[62];
+
+    // Declare 3 arrays
+    symbols upCase[26], lowCase[26], nums[10];
     
     getline( f, s);
     while( !f.eof())
     {
-        extractChars(s, ch);
+        //cycle throug chars of a string
+        for( int i = 0; i < s.length(); i++)
+        {
+            // Fill 3 arrays, one for each type of symbol
+            if( isdigit(s[i])) 
+                insertChars( s[i], nums);
+            else if( islower(s[i]))
+                insertChars( s[i], lowCase);
+            else if( isupper(s[i]))
+                insertChars(s[i], upCase);
+        }
         getline( f, s);
     }
     // count last line
-    extractChars(s, ch);
-    sortArr(ch);
-    writeArr(ch, f1);
-    cout << countSymbols(ch) << " different chars counted!\n";
-    cout << "Total count: " << countTotal(ch) << endl;
-    
+    for( int i = 0; i < s.length(); i++)
+    {
+        // Fill 3 arrays, one for each type of symbol
+        if( isdigit(s[i])) 
+            insertChars( s[i], nums);
+        else if( islower(s[i]))
+            insertChars( s[i], lowCase);
+        else if( isupper(s[i]))
+            insertChars(s[i], upCase);
+
+    }
+    // sort all arrays
+    sortArr(nums);
+    sortArr(lowCase);
+    sortArr(upCase);
+    //output each array in a new column
+    writeArr(lowCase, nums, upCase, f1);
+    std::cout << countSymbols(nums) << " different numbers counted!\n";
+    std::cout << "Total count: " << countTotal(nums) << endl;
+    std::cout << countSymbols(lowCase) << " different lower case characters counted!\n";
+    std::cout << "Total count: " << countTotal(lowCase) << endl;
+    std::cout << countSymbols(upCase) << " different upper case characters counted!\n";
+    std::cout << "Total count: " << countTotal(upCase) << endl;
     f.close();
     f1.close();
     
