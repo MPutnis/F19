@@ -1,7 +1,7 @@
 /*
 Putnis Mārtiņš
 mp13031
-Programma izveidota: 20.02.2024
+Programma izveidota: 29.02.2024
 === F19 =======================================
 
 Izveidot programmu valodā C++, kas apstrādā teksta failu secīgā režīmā.
@@ -12,6 +12,7 @@ F19. Izvadīt dotajā teksta failā f sastapto latīņu alfabēta burtu un cipar
 */
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <string>
 
 using namespace std;
@@ -131,8 +132,9 @@ void sortArr( symbols *c)
 }
 
 // function to write 3 arrays to a file
-void writeArr(symbols *u, symbols *l, symbols *n, fstream &f)
+void writeArr(symbols *u, symbols *l, symbols *n, char const* f1)
 {
+    FILE* fp = fopen(f1, "w");
     int uLen = countSymbols(u), lLen = countSymbols(l), nLen = countSymbols(n);
     int maxLength = max(lLen, nLen);
     maxLength = max(maxLength, uLen);
@@ -140,19 +142,21 @@ void writeArr(symbols *u, symbols *l, symbols *n, fstream &f)
     {
         string uc, lc, nu; // will hold output values
         // has i reached the end of uppercase array? If yes, then tab, else print array[i]
-        (i >= uLen) ? uc = "\t\t" : uc = u[i].print();
+        (i >= uLen) ? uc = "" : uc = u[i].print();
         // has i reached the end of lowercase array? If yes, then tab, else print array[i]
-        (i >= lLen) ? lc = "\t\t" : lc = l[i].print();
+        (i >= lLen) ? lc = "" : lc = l[i].print();
         // has i reached the end of numbers array? If yes, then tab, else print array[i]
         (i >= nLen) ? nu = "" : nu = n[i].print();
-        f << i+1 << ".\t| " << uc << "\t| " << lc << "\t| " << nu << endl;
+        //f << i+1 << ".\t| " << uc << "\t| " << lc << "\t| " << nu << endl;
+        fprintf(fp, "%d.\t%-8s\t%-8s\t%-8s\n", i+1, uc.c_str(), lc.c_str(), nu.c_str());
+        //cout << "uc: " << uc << " lc: " << lc << " nu: " <<  nu << endl;
     }
+    fclose(fp);
 }
 
 int main() {
-    fstream f, f1;
+    fstream f;
     f.open("text.txt", ios::in);
-    f1.open("table.txt", ios::out);
     string s;
 
     // Declare 3 arrays
@@ -191,15 +195,13 @@ int main() {
     sortArr(lowCase);
     sortArr(upCase);
     //output each array in a new column
-    writeArr(lowCase, nums, upCase, f1);
+    writeArr(lowCase, nums, upCase, "table.txt");
     std::cout << countSymbols(nums) << " different numbers counted!\n";
     std::cout << "Total count: " << countTotal(nums) << endl;
     std::cout << countSymbols(lowCase) << " different lower case characters counted!\n";
     std::cout << "Total count: " << countTotal(lowCase) << endl;
     std::cout << countSymbols(upCase) << " different upper case characters counted!\n";
     std::cout << "Total count: " << countTotal(upCase) << endl;
-    f.close();
-    f1.close();
-    
+    f.close();    
     return 0;
 }
